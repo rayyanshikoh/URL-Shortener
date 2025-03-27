@@ -3,13 +3,13 @@ import string
 
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.models import User
 from .forms import Url
 from .models import UrlData
 
 
 def index(request):
     return HttpResponse("Hello World")
-
 
 def url_short(request):
     if request.method == 'POST':
@@ -18,12 +18,28 @@ def url_short(request):
             slug = ''.join(random.choice(string.ascii_letters)
                            for x in range(10))
             url = form.cleaned_data["url"]
-            new_url = UrlData(url=url, slug=slug)
-            new_url.save()
+            if request.user.is_authenticated:
+                new_url = UrlData(url=url, slug=slug, user=request.user)
+                new_url.save()
+            else:
+                new_url = UrlData(url=url, slug=slug)
+                new_url.save()
+                data = [new_url]
+                context = {
+                    'form': form,
+                    'data': data
+                }
+                return render(request, 'url/index.html', context)
+
+
             return redirect('/')
     else:
         form = Url()
-    data = UrlData.objects.all()
+
+    if request.user.is_authenticated:
+        data = UrlData.objects.filter(user=request.user)
+    else:
+        data = {}
     context = {
         'form': form,
         'data': data

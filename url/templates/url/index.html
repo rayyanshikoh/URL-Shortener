@@ -1,21 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>URL Shortener</title>
+    {% load static %}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
+
 <body class="bg-light">
-{% load static %}
+
 <div class="container mt-5">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-light bg-white shadow-sm rounded p-3 mb-4">
+        <a class="navbar-brand" href="/">
+            <img src="{% static 'url/image.png' %}" alt="Logo" class="img-fluid" style="max-height: 50px;">
+            URL Shortener
+        </a>
+
+        <!-- User Info (Only if authenticated) -->
+        {% if user.is_authenticated %}
+            <div>
+                <span class="me-3">Hello, <strong>{{ user.username }}</strong>!</span>
+                <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm">Logout</a>
+            </div>
+        {% endif %}
+    </nav>
+
+    <!-- URL Shortener Form -->
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card shadow-sm p-4">
-                <div class="d-flex align-items-center justify-content-between">
-                    <img src="{% static 'url/image.png' %}" alt="Logo" class="img-fluid" style="max-height: 100px;">
-                    <h2 class="m-0">URL Shortener</h2>
-                </div>
+                <h2 class="text-center mb-4">Shorten Your URL</h2>
                 <form method="POST">
                     {% csrf_token %}
                     <div class="mb-3">
@@ -27,28 +45,42 @@
             </div>
         </div>
     </div>
-</div>
 
-
+    <!-- Shortened URLs Section -->
     <div class="row mt-4">
-    <div class="col-md-8 offset-md-2">
-        <h4 class="text-center">Shortened URLs</h4>
-        <ul class="list-group">
-            {% for item in data %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span>{{ item.url }}</span>
-                    <span class="badge bg-success">{{ item.slug }}</span>
-                    <button class="btn btn-primary copy-btn" data-link="{{ request.build_absolute_uri }}/u/{{ item.slug }}">Copy link</button>
-                </li>
-            {% empty %}
-                <li class="list-group-item text-center">No shortened URLs yet.</li>
-            {% endfor %}
-        </ul>
+        <div class="col-md-8 offset-md-2">
+            <h4 class="text-center">Your Shortened URLs</h4>
+            <ul class="list-group">
+                {% for item in data %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ item.url }}</span>
+                        <span class="badge bg-success">{{ item.slug }}</span>
+                        <button class="btn btn-primary copy-btn" data-link="{{ request.build_absolute_uri }}/u/{{ item.slug }}">
+                            Copy link
+                        </button>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-center">No shortened URLs yet.</li>
+                {% endfor %}
+            </ul>
+
+            <!-- Login/Signup Prompt (If Not Logged In) -->
+            {% if not user.is_authenticated %}
+                <div class="text-center mt-4">
+                    <p>Want to keep your links safe?</p>
+                    <a href="{% url 'login' %}" class="btn btn-outline-primary me-2">Login</a>
+                    <a href="{% url 'register' %}" class="btn btn-outline-success">Sign Up</a>
+                </div>
+            {% endif %}
+        </div>
     </div>
-</div>
+
 </div>
 
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Copy Link Script -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const copyButtons = document.querySelectorAll(".copy-btn");
@@ -65,5 +97,6 @@
         });
     });
 </script>
+
 </body>
 </html>
